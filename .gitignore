@@ -1,2 +1,5 @@
 /cache/*
 /.idea
+/index.php
+/res/*
+/tpl/*

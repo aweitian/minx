@@ -23,8 +23,10 @@ class AutoLoader
                 if (strpos($class, $pre) === 0) {
                     $post = substr($class, strlen($pre));
                     $path = $dir . "/" . str_replace('\\', '/', $post) . ".php";
-                    if (file_exists($path))
+                    if (file_exists($path)) {
                         require_once $path;
+                        return;
+                    }
                     else
                         throw new Exception("$class not found in $path");
                 }
