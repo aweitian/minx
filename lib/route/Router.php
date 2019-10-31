@@ -156,45 +156,51 @@ class Router
      * url 以#开头和结尾 或者 路径中包包含  :num :alpha :var 用正则匹配
      * action 支持callback 或者  \namespace\class@method
      * method 默认为index
+     *strict 默认为true ,表示如果URL中没有^$,并且带了正则占位符,TRUE会在前后自动加上^$,否则不加
      *
      * @param $url
      * @param $action
      * @param array $middleware
+     * @param bool $strict
      * @return IRoute
      */
-    public function get($url, $action, $middleware = array())
+    public function get($url, $action, $middleware = array(), $strict = true)
     {
-        return $this->_request('get', $url, $action, $middleware);
+        return $this->_request('get', $url, $action, $middleware, $strict);
     }
 
     /**
      * url 以#开头和结尾 或者 路径中包包含  :num :alpha :var 用正则匹配
      * action 支持callback 或者  \namespace\class@method  method
      * 默认为index
+     * strict 默认为true ,表示如果URL中没有^$,并且带了正则占位符,TRUE会在前后自动加上^$,否则不加
      *
      * @param $url
      * @param $action
      * @param array $middleware
+     * @param bool $strict
      * @return IRoute
      */
-    public function post($url, $action, $middleware = array())
+    public function post($url, $action, $middleware = array(), $strict = true)
     {
-        return $this->_request('post', $url, $action, $middleware);
+        return $this->_request('post', $url, $action, $middleware, $strict);
     }
 
     /**
      * url 以#开头和结尾 或者 路径中包包含  :num :alpha :var 用正则匹配
      * action 支持callback 或者  \namespace\class@method  method
      * 默认为index
+     * strict 默认为true ,表示如果URL中没有^$,并且带了正则占位符,TRUE会在前后自动加上^$,否则不加
      *
      * @param $url
      * @param $action
      * @param array $middleware
+     * @param bool $strict
      * @return IRoute
      */
-    public function delete($url, $action, $middleware = array())
+    public function delete($url, $action, $middleware = array(), $strict = true)
     {
-        return $this->_request('delete', $url, $action, $middleware);
+        return $this->_request('delete', $url, $action, $middleware, $strict);
     }
 
 
@@ -202,15 +208,17 @@ class Router
      * url 以#开头和结尾 或者 路径中包包含  :num :alpha :var 用正则匹配
      * action 支持callback 或者  \namespace\class@method  method
      * 默认为index
+     * strict 默认为true ,表示如果URL中没有^$,并且带了正则占位符,TRUE会在前后自动加上^$,否则不加
      *
      * @param $url
      * @param $action
      * @param array $middleware
+     * @param bool $strict
      * @return IRoute
      */
-    public function put($url, $action, $middleware = array())
+    public function put($url, $action, $middleware = array(), $strict = true)
     {
-        return $this->_request('put', $url, $action, $middleware);
+        return $this->_request('put', $url, $action, $middleware, $strict);
     }
 
     /**
@@ -218,15 +226,17 @@ class Router
      * action 支持callback 或者  \namespace\class@method  method
      * 默认为index
      * method 可以支持数组  array('get','post')
-     * @param $method
+     * strict 默认为true ,表示如果URL中没有^$,并且带了正则占位符,TRUE会在前后自动加上^$,否则不加
      * @param $url
      * @param $action
      * @param array $middleware
+     * @param string $method
+     * @param bool $strict
      * @return IRoute
      */
-    public function any($url, $action, $middleware = array(), $method = "*")
+    public function any($url, $action, $middleware = array(), $method = "*", $strict = true)
     {
-        return $this->_request($method, $url, $action, $middleware);
+        return $this->_request($method, $url, $action, $middleware, $strict);
     }
 
     /**
@@ -260,15 +270,20 @@ class Router
      * @param $url
      * @param $action
      * @param $middleware
+     * @param bool $strict
      * @return IRoute
      * @throws Exception
      */
-    protected function _request($method, $url, $action, $middleware)
+    protected function _request($method, $url, $action, $middleware, $strict = true)
     {
         $matcher = new Group();
         if ($which = $this->isRegexpRoute($url)) {
             if ($which == Router::URL_MODE_REGEXP_WITH_PLACEHOLDER) {
-                $url = Regexp::DELIMITER . strtr($url, $this->regexp) . Regexp::DELIMITER;
+                if ($strict && $url[0] != '^' && substr($url, -1) != '$') {
+                    $url = Regexp::DELIMITER . '^' . strtr($url, $this->regexp) . '$' . Regexp::DELIMITER;
+                } else {
+                    $url = Regexp::DELIMITER . strtr($url, $this->regexp) . Regexp::DELIMITER;
+                }
             }
 //            var_dump($url);
             $matcher->add(new Regexp($url));
