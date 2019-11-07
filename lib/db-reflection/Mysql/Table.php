@@ -99,7 +99,7 @@ class Table implements ITableReflection
     /**
      * @return mixed
      */
-    public function getPk()
+    public function getPks()
     {
         $this->initTableColDecription();
         $ret = array();
@@ -107,6 +107,15 @@ class Table implements ITableReflection
             if ($val ["Key"] == "PRI")
                 $ret [] = $val ["Field"];
         }
+        return $ret;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPk()
+    {
+        $ret = $this->getPks();
         return count($ret) == 1 ? $ret[0] : $ret;
     }
 
