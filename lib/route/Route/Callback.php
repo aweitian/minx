@@ -36,14 +36,16 @@ class Callback extends Route
             return false;
         $this->dispatcher = new \Aw\Routing\Dispatch\Callback($this->callback);
         $this->beforeDispatcher($request, $this->matcher, $this->dispatcher);
+        if (!$this->dispatcher->detect($request, $this->matcher->getMatchResult())) {
+            return false;
+        }
         $that = $this;
         $pipe = new Pipeline();
-        return $this->handleResult($pipe->send($request)
+        $this->result = $this->handleResult($pipe->send($request)
             ->through($middleware)
             ->then(function ($request) use ($that) {
-                $f = $that->dispatcher->dispatch($request, $that->matcher->getMatchResult());
-                $that->result = $that->dispatcher->getResponse();
-                return $f;
+                return $that->dispatcher->dispatch();
             }));
+        return true;
     }
 }

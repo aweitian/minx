@@ -12,11 +12,25 @@ namespace Aw\Routing\Dispatch;
 use Aw\Http\Request;
 use Aw\Http\Response;
 use Exception;
+use ReflectionClass;
 
 class AtCall implements IDispatcher
 {
     public $callback;
     protected $response;
+    /**
+     * @var ReflectionClass
+     */
+    protected $rc;
+    /**
+     * @var \ReflectionMethod
+     */
+    protected $method;
+    /**
+     * @var Request
+     */
+    protected $request;
+    protected $matches;
 
     /**
      * @param string $call
@@ -44,7 +58,7 @@ class AtCall implements IDispatcher
      * @return bool
      * @throws Exception
      */
-    public function dispatch(Request $request, array $matches = array())
+    public function detect(Request $request, array $matches = array())
     {
         $t = explode('@', $this->callback);
         if (count($t) != 2) {
@@ -56,7 +70,7 @@ class AtCall implements IDispatcher
             $this->response = new Response("class {$cls} is not found", 404);
             return false;
         }
-        $rc = new \ReflectionClass($cls);
+        $rc = new ReflectionClass($cls);
         if (!$rc->hasMethod($act)) {
             $this->response = new Response("{$act} in {$cls} is not found", 404);
             return false;
@@ -66,27 +80,34 @@ class AtCall implements IDispatcher
             $this->response = new Response("{$act} in {$cls} should be public", 403);
             return false;
         }
-
-        if ($rc->hasMethod("__construct")) {
-            $inst = $rc->newInstance($request);
-        } else {
-            $inst = $rc->newInstance();
-        }
-
-        $ret = $method->invoke($inst, $matches);
-        if ($ret instanceof Response) {
-            $this->response = $ret;
-        } else {
-            $this->response = new Response($ret);
-        }
+        $this->rc = $rc;
+        $this->method = $method;
+        $this->request = $request;
+        $this->matches = $matches;
         return true;
     }
 
     /**
      * @return Response
+     * @throws Exception
      */
-    public function getResponse()
+    public function dispatch()
     {
-        return $this->response;
+        if ($this->rc == null) {
+            throw new Exception("detect first");
+        }
+        $rc = $this->rc;
+        if ($rc->hasMethod("__construct")) {
+            $inst = $rc->newInstance($this->request);
+        } else {
+            $inst = $rc->newInstance();
+        }
+
+        $ret = $this->method->invoke($inst, $this->matches);
+        if ($ret instanceof Response) {
+            return $ret;
+        } else {
+            return new Response($ret);
+        }
     }
 }

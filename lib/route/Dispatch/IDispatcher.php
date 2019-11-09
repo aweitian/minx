@@ -15,14 +15,14 @@ use Aw\Http\Response;
 interface IDispatcher
 {
     /**
-     * @param Request $request
+     * @return Response
+     */
+    public function dispatch();
+
+    /**
+     *  @param Request $request
      * @param array $matches
      * @return bool
      */
-    public function dispatch(Request $request, array $matches);
-
-    /**
-     * @return Response
-     */
-    public function getResponse();
+    public function detect(Request $request, array $matches);
 }

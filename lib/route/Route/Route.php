@@ -45,14 +45,14 @@ abstract class Route implements IRoute
     /**
      * 当中间件返回RESPONSE实例,返回为TRUE
      * @param $result
-     * @return bool
+     * @return Response
      */
     protected function handleResult($result)
     {
-        if ($result instanceof Response) {
-            $this->result = $result;
-            return true;
-        }
+//        if ($result instanceof Response) {
+//            $this->result = $result;
+//            return true;
+//        }
         return $result;
     }
 //

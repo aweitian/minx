@@ -11,12 +11,15 @@ namespace Aw\Routing\Dispatch;
 
 use Aw\Http\Request;
 use Aw\Http\Response;
-use Aw\Routing\Matcher\IMatcher;
+use Exception;
+use ReflectionFunction;
 
 class Callback implements IDispatcher
 {
     protected $callback;
     protected $response;
+    protected $request;
+    protected $matches;
 
     /**
      * 回调函数第一个参数是request,
@@ -26,31 +29,53 @@ class Callback implements IDispatcher
     public function __construct($call)
     {
 //        $this->matcher = $matcher;
-        $this->callback = $call;
+//        $rc = new \ReflectionFunction()
+        $re = new ReflectionFunction($call);
+        if ($re->getNumberOfParameters() < 3) {
+            $this->callback = function ($request, $matches, $detect) use ($call) {
+                if ($detect) return true;
+                return $call($request, $matches);
+            };
+        } else {
+            $this->callback = $call;
+        }
     }
 
-    public function dispatch(Request $request, array $matches = array())
+    /**
+     * @return Response
+     * @throws Exception
+     */
+    public function dispatch()
+    {
+        if ($this->request == null) {
+            throw new Exception("detect first");
+        }
+        $callback = $this->callback;
+        $ret = $callback($this->request, $this->matches, false);
+
+        if ($ret instanceof Response) {
+            return $ret;
+        } else {
+            return new Response($ret);
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @param array $matches
+     * @return bool
+     */
+    public function detect(Request $request, array $matches = array())
     {
         $callback = $this->callback;
         if (!is_callable($callback)) {
             return false;
         }
-        $ret = $callback($request, $matches);
+        $ret = $callback($request, $matches, true);
         if ($ret === false)
             return false;
-        if ($ret instanceof Response) {
-            $this->response = $ret;
-        } else {
-            $this->response = new Response($ret);
-        }
+        $this->request = $request;
+        $this->matches = $matches;
         return true;
-    }
-
-    /**
-     * @return Response
-     */
-    public function getResponse()
-    {
-        return $this->response;
     }
 }
