@@ -21,6 +21,8 @@ class Captcha
     {
         $this->config = array(
             "session_name" => "captcha_session_name",
+            "session_name_try_times" => "captcha_session_name_try_times",
+            "session_name_try_times_num" => 4,
             "session_img_type" => "num",
             "session_img_length" => 4,
             "session_img_width" => 200,
@@ -38,6 +40,12 @@ class Captcha
         $this->config[$key] = $value;
     }
 
+    protected function setCode($code)
+    {
+        $this->session->set($this->config["session_name_try_times"], $this->config['session_name_try_times_num']);
+        $this->session->set($this->config["session_name"], $code);
+    }
+
     /**
      * @param $code
      * @return bool
@@ -47,12 +55,23 @@ class Captcha
         if (!isset($code)) {
             return false;
         }
+        if (!$this->session->get($this->config["session_name"], false)) {
+            return false;
+        }
 //        var_dump($this->session->get($this->config["session_name"]));
         if (is_string($code) && strlen($code) > 0) {
             $ret = $this->session->get($this->config["session_name"]) === $code;
             if (!$ret) {
+                $remains = $this->session->get($this->config["session_name_try_times"]);
+                $remains--;
+                if ($remains <= 0) {
+                    $this->session->remove($this->config["session_name"]);
+                } else {
+                    $this->session->set($this->config["session_name_try_times"], $remains);
+                }
                 return false;
             }
+            $this->session->remove($this->config["session_name"]);
             return true;
         }
         return false;
@@ -78,8 +97,8 @@ class Captcha
         $num2 = rand(1, 20);
 
         //$_SESSION['helloweba_math'] = $num1 + $num2;
-        $this->session->set($this->config["session_name"], $num1 + $num2);
-
+        //$this->session->set($this->config["session_name"], $num1 + $num2);
+        $this->setCode($num1 + $num2);
         $gray = imagecolorallocate($im, 118, 151, 199);
         $black = imagecolorallocate($im, mt_rand(0, 100), mt_rand(0, 100), mt_rand(0, 100));
 
@@ -113,7 +132,8 @@ class Captcha
         }
         //4位验证码也可以用rand(1000,9999)直接生成
         //将生成的验证码写入session，备验证页面使用
-        $this->session->set($this->config["session_name"], $code);
+//        $this->session->set($this->config["session_name"], $code);
+        $this->setCode($code);
         //创建图片，定义颜色值
         Header("Content-type: image/PNG");
         $im = imagecreate($w, $h);
@@ -175,7 +195,8 @@ class Captcha
             $code .= $str[mt_rand(0, strlen($str) - 1)];
         }
         //将生成的验证码写入session，备验证页面使用
-        $this->session->set($this->config["session_name"], $code);
+//        $this->session->set($this->config["session_name"], $code);
+        $this->setCode($code);
         //创建图片，定义颜色值
         Header("Content-type: image/PNG");
         $im = imagecreate($w, $h);
