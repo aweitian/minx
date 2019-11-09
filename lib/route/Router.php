@@ -49,6 +49,8 @@ class Router
 
     protected $request;
 
+    public $middleware_prefix = '\\App\\Middleware\\';
+
     public $handle_404_callbacks = array();
 
     /**
@@ -63,6 +65,16 @@ class Router
     public function add404Handler(Closure $closure)
     {
         $this->handle_404_callbacks[] = $closure;
+    }
+
+    public function handleMiddleware(array & $mw)
+    {
+        foreach ($mw as & $item) {
+            if (is_string($item) && preg_match('#^\w+$#', $item)) {
+                $item = $this->middleware_prefix . $item;
+            }
+        }
+        return $mw;
     }
 
     /**
@@ -341,9 +353,10 @@ class Router
      */
     public function add(IRoute $route, $middleware = array())
     {
+
         $this->routes[] = array(
             'route' => $route,
-            'middleware' => $middleware,
+            'middleware' => $this->handleMiddleware($middleware),
         );
         return $route;
     }

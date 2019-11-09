@@ -27,21 +27,23 @@ class sync_3e20f15b38c03d08a00ffb55daa890
         system("cd cache && 7z -y x $name.zip $name-master/src && cd .. ");
         if ($copy_src) {
             system("mkdir lib\\$name && xcopy cache\\$name-master\src\*.* lib\\$name /s /e /c /y /h /r");
-            sync_3e20f15b38c03d08a00ffb55daa890::$map .= '"' . addslashes($copy_src) . '" => ' . '__DIR__ . "/lib/' . $name . '"' . ",\n";
+            sync_3e20f15b38c03d08a00ffb55daa890::$map .= '"' . addslashes($copy_src) . '" => ' . 'dirname(__DIR__) . "/lib/' . $name . '"' . ",\n";
         } else {
             system("xcopy cache\\$name-master\src\*.* lib /s /e /c /y /h /r");
         }
         system("rd /s /Q cache\\$name-master");
+
     }
 
     public static function writeMap()
     {
-        sync_3e20f15b38c03d08a00ffb55daa890::$map .= '"Aw\\\\" => ' . '__DIR__ . "/lib"';
-        file_put_contents("map.php", '<?php return array(' . "\n" . sync_3e20f15b38c03d08a00ffb55daa890::$map . "\n);");
+        sync_3e20f15b38c03d08a00ffb55daa890::$map .= '"Aw\\\\" => ' . 'dirname(__DIR__) . "/lib"';
+        file_put_contents("lib/map.php", '<?php return array(' . "\n" . sync_3e20f15b38c03d08a00ffb55daa890::$map . "\n);");
     }
 }
-
-
+system("rd /s /Q lib");
+system("mkdir lib");
+system("copy AutoLoader.php lib\\AutoLoader.php");
 //utility
 sync_3e20f15b38c03d08a00ffb55daa890::init("utilis", false);
 sync_3e20f15b38c03d08a00ffb55daa890::init("view", false);
