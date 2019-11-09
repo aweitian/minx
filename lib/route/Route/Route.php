@@ -10,6 +10,7 @@ namespace Aw\Routing\Route;
 
 
 use Aw\Http\Request;
+use Aw\Http\Response;
 use Aw\Routing\Dispatch\IDispatcher;
 use Aw\Routing\Matcher\IMatcher;
 
@@ -39,6 +40,20 @@ abstract class Route implements IRoute
     public function getDispatchResult()
     {
         return $this->result;
+    }
+
+    /**
+     * 当中间件返回RESPONSE实例,返回为TRUE
+     * @param $result
+     * @return bool
+     */
+    protected function handleResult($result)
+    {
+        if ($result instanceof Response) {
+            $this->result = $result;
+            return true;
+        }
+        return $result;
     }
 //
 //    /**

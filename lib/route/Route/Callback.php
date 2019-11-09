@@ -38,12 +38,12 @@ class Callback extends Route
         $this->beforeDispatcher($request, $this->matcher, $this->dispatcher);
         $that = $this;
         $pipe = new Pipeline();
-        return $pipe->send($request)
+        return $this->handleResult($pipe->send($request)
             ->through($middleware)
             ->then(function ($request) use ($that) {
                 $f = $that->dispatcher->dispatch($request, $that->matcher->getMatchResult());
                 $that->result = $that->dispatcher->getResponse();
                 return $f;
-            });
+            }));
     }
 }

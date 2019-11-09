@@ -95,7 +95,7 @@ class Router
         return Router::URL_MODE_EQUAL;
     }
 
-    public function ca($middleware = array(), $action = "\\App\\Http\\Default\\(:1)@(:2)")
+    public function ca($middleware = array(), $action = "\\App\\Http\\Web\\(:1)@(:2)")
     {
         $matcher = new MatcherCallback(function (Request $request, MatcherCallback $that) {
             $path = $request->getPath();
