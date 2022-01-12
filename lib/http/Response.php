@@ -192,6 +192,18 @@ class Response
         511 => 'Network Authentication Required',                             // RFC6585
     );
 
+    public static $contentType = array(
+        "bin" => "application/octet-stream",
+        "jpg" => "image/jpeg",
+        "png" => "image/png",
+        "gif" => "image/gif",
+        "xml" => "text/xml",
+        "pdf" => "application/pdf",
+        "css" => "text/css",
+        "js" => "text/javascript",
+        "html" => "	text/html",
+    );
+
     /**
      * Constructor.
      *
@@ -207,6 +219,66 @@ class Response
         $this->setContent($content);
         $this->setStatusCode($status);
         $this->setProtocolVersion('1.0');
+    }
+
+    public function sendHeaders()
+    {
+        // headers have already been sent by the developer
+        if (headers_sent()) {
+            return $this;
+        }
+        // headers
+        foreach ($this->headers as $name => $values) {
+            $replace = 0 === strcasecmp($name, 'Content-Type');
+            foreach ($values as $value) {
+                header($name . ': ' . $value, $replace, $this->statusCode);
+            }
+        }
+//        // cookies
+//        foreach ($this->headers->getCookies() as $cookie) {
+//            header('Set-Cookie: '.$cookie, false, $this->statusCode);
+//        }
+        // status
+        //header(sprintf('HTTP/%s %s %s', $this->version, $this->statusCode, $this->statusText), true, $this->statusCode);
+        return $this;
+    }
+
+    /**
+     * @param string $type css|js|jpg|gif|pdf|xml|html
+     * @return $this
+     */
+    public function markAs($type)
+    {
+        if (array_key_exists($type, self::$contentType)) {
+            $type = self::$contentType[$type];
+        }
+        $this->headers['Content-Type'] = $type;
+        return $this;
+    }
+
+    public function markAsCss()
+    {
+        return $this->markAs('css');
+    }
+
+    public function markAsJs()
+    {
+        return $this->markAs('js');
+    }
+
+    public function markAsJpg()
+    {
+        return $this->markAs('jpg');
+    }
+
+    public function markAsPng()
+    {
+        return $this->markAs('png');
+    }
+
+    public function markAsGif()
+    {
+        return $this->markAs('gif');
     }
 
     /**
@@ -263,6 +335,7 @@ class Response
      */
     public function send()
     {
+        $this->sendHeaders();
         $this->sendStatusCode($this->getStatusCode());
         $this->sendContent();
 

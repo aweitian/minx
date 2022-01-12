@@ -58,6 +58,7 @@ sync_3e20f15b38c03d08a00ffb55daa890::init("config", false);
 sync_3e20f15b38c03d08a00ffb55daa890::init("container", false);
 sync_3e20f15b38c03d08a00ffb55daa890::init("session", false);
 sync_3e20f15b38c03d08a00ffb55daa890::init("pipeline", false);
+sync_3e20f15b38c03d08a00ffb55daa890::init("model", false);
 
 
 sync_3e20f15b38c03d08a00ffb55daa890::init("httpclient", "Aw\\Httpclient\\");

@@ -24,12 +24,14 @@ class Request
     protected $port;
     protected $isJsonAccept;
 
-
+    protected $original = '';
     protected $userAgent;
     protected $path;
     protected $query = array();
     protected $method;
     protected $content;
+
+    protected $headers = array();
 
     public function __construct($path = '', $method = '')
     {
@@ -42,6 +44,51 @@ class Request
     public function isJsonAccept()
     {
         return $this->isJsonAccept;
+    }
+
+    /**
+     * @param null $key
+     * @param null $default
+     * @return null
+     */
+    public function json($key = null, $default = null)
+    {
+        $input = file_get_contents("php://input");
+        $src = json_decode($input, true);
+        return $this->_input($src, $key, $default);
+    }
+
+    public function get($key = null, $default = null)
+    {
+        return $this->_input($_GET, $key, $default);
+    }
+
+    public function post($key = null, $default = null)
+    {
+        return $this->_input($_POST, $key, $default);
+    }
+
+    public function raw()
+    {
+        return file_get_contents("php://input");
+    }
+
+    protected function _input($src, $key = null, $default = null)
+    {
+        if ($key == null) return $src;
+        if (array_key_exists($key, $src)) return $src[$key];
+        return $default;
+    }
+
+    /**
+     * @param null $key
+     * @return array|mixed|null
+     */
+    public function getHeader($key = null)
+    {
+        if (!$key) return $this->headers;
+        if (array_key_exists($key, $this->headers)) return $this->headers[$key];
+        return null;
     }
 
     /**
@@ -180,14 +227,24 @@ class Request
         return $this;
     }
 
+    /**
+     * 返回第一次的PATH
+     * @return string
+     */
+    public function getOriginal()
+    {
+        return $this->original;
+    }
 
     protected function initFromGlobal($path, $method)
     {
         if ($path) {
             $this->path = $path;
+            $this->original = $this->path;
         } else {
             if (isset($_SERVER['PATH_INFO'])) {
-                $this->path =  $_SERVER['PATH_INFO'];
+                $this->path = $_SERVER['PATH_INFO'];
+                $this->original = $this->path;
             } else {
                 $r = explode('?', $this->requestUri(), 2);
                 if (count($r) == 2) {
@@ -195,6 +252,7 @@ class Request
                 } else {
                     $this->path = $this->requestUri();
                 }
+                $this->original = $this->path;
             }
         }
         if ($method) {
@@ -211,6 +269,21 @@ class Request
         $this->content = file_get_contents('php://input');
         $this->isJsonAccept = $this->_isJsonAccept();
         $this->userAgent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : $this->defaultUa;
+        $this->headers = $this->initHeader();
+    }
+
+    protected function initHeader()
+    {
+        if (!function_exists('getallheaders')) {
+            $headers = array();
+            foreach ($_SERVER as $name => $value) {
+                if (substr($name, 0, 5) == 'HTTP_') {
+                    $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+                }
+            }
+            return $headers;
+        }
+        return getallheaders();
     }
 
     /**
@@ -261,8 +334,9 @@ class Request
         }
     }
 
-    protected function _isJsonAccept(){
-        if(!isset($_SERVER["HTTP_ACCEPT"]))return false;
+    protected function _isJsonAccept()
+    {
+        if (!isset($_SERVER["HTTP_ACCEPT"])) return false;
         return false !== strpos($_SERVER["HTTP_ACCEPT"], "application/json");
     }
 }

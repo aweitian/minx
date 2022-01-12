@@ -10,6 +10,10 @@ namespace Aw;
 
 class Arr
 {
+    const K_REPLACE = 0;
+    const K_START = 1;
+    const K_END = 2;
+
     /**
      * @param $arr
      * @param $key
@@ -173,6 +177,29 @@ class Arr
             $ret[$key] = $array[$key];
         }
         return $ret;
+    }
+
+    /**
+     * 对数组键值进行
+     * @param $arr
+     * @param $find
+     * @param $replace
+     * @param int $where
+     */
+    public static function k($arr, $find, $replace = "", $where = self::K_REPLACE)
+    {
+        $new = array();
+        foreach ($arr as $key => $val) {
+            if ($where == self::K_START) {
+                $nk = Str::startReplace($key, $find, $replace);
+            } else if ($where == self::K_END) {
+                $nk = Str::endReplace($key, $find, $replace);
+            } else {
+                $nk = str_replace($find, $replace, $key);
+            }
+            $new[$nk] = $val;
+        }
+        return $new;
     }
 
     /**

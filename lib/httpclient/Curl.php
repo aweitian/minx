@@ -19,6 +19,7 @@ class Curl
     protected $curl;
     public $msg;
     public $errorno;
+    public $headers_response = array();
     public $ua = self::DEF_UA;
     public $cookie; // cookie保存路径
     public $timeout = 10;
@@ -53,7 +54,7 @@ class Curl
      */
     public function resetUa()
     {
-        $this->ua = "badtomcat/1.0";
+        $this->ua = self::DEF_UA;
         return $this;
     }
 
@@ -114,11 +115,33 @@ class Curl
         $content = curl_exec($this->curl);
         $this->errorno = curl_errno($this->curl);
         $this->msg = curl_error($this->curl);
+//        $this->headers_response = curl_getinfo($this->curl, CURLINFO_HEADER_OUT);
         curl_close($this->curl);
         if ($this->errorno > 0) {
             return false;
         }
         return $content;
+    }
+
+    public function headerHandler($curl, $headerLine) {
+        $len = strlen($headerLine);
+        // HTTP响应头是以:分隔key和value的
+        $split = explode(':', $headerLine, 2);
+        if (count($split) > 1) {
+            $key = trim($split[0]);
+            $value = trim($split[1]);
+            // 将响应头的key和value存放在全局变量里
+            $this->headers_response[$key] = $value;
+        }
+        return $len;
+    }
+
+    /**
+     * @return resource
+     */
+    public function getCurl()
+    {
+        return $this->curl;
     }
 
     /**
@@ -197,8 +220,12 @@ class Curl
                 $this->setOption(CURLOPT_CUSTOMREQUEST, 'DELETE');
                 break;
         }
+        $this->setOption(CURLOPT_SSL_VERIFYPEER, false);
+        $this->setOption(CURLOPT_SSL_VERIFYHOST, false);
+        $this->setOption(CURLOPT_HEADERFUNCTION, array($this,'headerHandler'));
+//        $this->setOption(CURLOPT_CONNECTTIMEOUT, 5);
         $this->setOption(CURLOPT_TIMEOUT, $this->timeout);
-        $this->setOption(CURLOPT_RETURNTRANSFER, 1);
+        $this->setOption(CURLOPT_RETURNTRANSFER, 5);
         return $this;
     }
 

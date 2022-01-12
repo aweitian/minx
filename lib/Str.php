@@ -89,4 +89,40 @@ class Str
         }
         return false;
     }
+
+    /**
+     * 如果旧前缀为空，返回新前缀+字符串
+     * 如果找到旧前缀，替换掉字符串中的旧前缀，在前面加上新前缀
+     * 如果没有找到旧前缀，返回字符串
+     * @param $haystack
+     * @param $needle
+     * @param $replacement
+     * @return string
+     */
+    public static function startReplace($haystack, $needle, $replacement = "")
+    {
+        if ($needle === "")
+            return $replacement . $haystack;
+        if (substr($haystack, 0, strlen($needle)) === (string)$needle)
+            return $replacement . substr($haystack, strlen($needle));
+        return $haystack;
+    }
+
+    /**
+     * 如果旧后缀为空，返回字符串+后缀
+     * 如果找到旧后缀，替换掉字符串中的旧后缀，在后面加上新后缀
+     * 如果没有找到旧后缀，返回字符串
+     * @param $haystack
+     * @param $needle
+     * @param $replacement
+     * @return string
+     */
+    public static function endReplace($haystack, $needle, $replacement = "")
+    {
+        if ($needle === "")
+            return $haystack . $replacement;
+        if (substr($haystack, -strlen($needle)) === (string)$needle)
+            return substr($haystack, 0, strlen($needle)) . $replacement;
+        return $haystack;
+    }
 }

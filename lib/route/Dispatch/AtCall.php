@@ -98,7 +98,7 @@ class AtCall implements IDispatcher
         }
         $rc = $this->rc;
         if ($rc->hasMethod("__construct")) {
-            $inst = $rc->newInstance($this->request);
+            $inst = $rc->newInstance($this->request, $this->matches);
         } else {
             $inst = $rc->newInstance();
         }

@@ -28,6 +28,17 @@ class Cmd
     }
 
     /**
+     * @param array $data
+     * @param string $message
+     * @param int $code
+     * @return Cmd
+     */
+    public static function make($data = array(), $message = "OK", $code = 200)
+    {
+        return new self($data, $message, $code);
+    }
+
+    /**
      * @return $this
      */
     public function markAsError()
@@ -120,10 +131,14 @@ class Cmd
      */
     public function get()
     {
+        $data = $this->data;
+        if (is_object($data) && method_exists($data,'toArray')) {
+            $data = $data->toArray();
+        }
         return array(
             'code' => $this->code,
             'message' => $this->message,
-            'data' => $this->data
+            'data' => $data
         );
     }
 
