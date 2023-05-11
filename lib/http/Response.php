@@ -198,6 +198,7 @@ class Response
         "png" => "image/png",
         "gif" => "image/gif",
         "xml" => "text/xml",
+        "json" => "application/json",
         "pdf" => "application/pdf",
         "css" => "text/css",
         "js" => "text/javascript",
@@ -228,18 +229,10 @@ class Response
             return $this;
         }
         // headers
-        foreach ($this->headers as $name => $values) {
+        foreach ($this->headers as $name => $value) {
             $replace = 0 === strcasecmp($name, 'Content-Type');
-            foreach ($values as $value) {
-                header($name . ': ' . $value, $replace, $this->statusCode);
-            }
+            header($name . ': ' . $value, $replace, $this->statusCode);
         }
-//        // cookies
-//        foreach ($this->headers->getCookies() as $cookie) {
-//            header('Set-Cookie: '.$cookie, false, $this->statusCode);
-//        }
-        // status
-        //header(sprintf('HTTP/%s %s %s', $this->version, $this->statusCode, $this->statusText), true, $this->statusCode);
         return $this;
     }
 
@@ -254,6 +247,11 @@ class Response
         }
         $this->headers['Content-Type'] = $type;
         return $this;
+    }
+
+    public function markAsJson()
+    {
+        return $this->markAs('json');
     }
 
     public function markAsCss()
