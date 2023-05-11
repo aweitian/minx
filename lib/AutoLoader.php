@@ -56,4 +56,4 @@ class AutoLoader
 
 AutoLoader::register();
 AutoLoader::addSilent("App\\Http\\");
-AutoLoader::add("App\\", dirname(__DIR__) . "/app");
+AutoLoader::add("App\\", dirname(__DIR__) . "/App");
